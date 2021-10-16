@@ -91,7 +91,7 @@ class CanvasParser
 
         // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-        $delta = 3;
+        $delta = 5;
 
         # Main
         $offsets = [
@@ -100,10 +100,16 @@ class CanvasParser
         ];
 
         # Others
-        for($y=-$delta; $y<=+$delta; $y++)
-            for($x=-$delta; $x<=+$delta; $x++)
-                $offsets[] = [$x, $y];
-
+        for($y=0; $y<=+$delta; $y++)
+        {
+            for($x=0; $x<=+$delta; $x++)
+            {
+                $offsets[] = [ $x, +$y];
+                $offsets[] = [-$x, +$y];
+                $offsets[] = [+$x, -$y];
+                $offsets[] = [-$x, -$y];
+            }
+        }
 
         $shapes = array();
 
@@ -128,24 +134,11 @@ class CanvasParser
                 #
                 # So, I want to find any "top/bottom" point :) -> choose closer!
 
-                if ($options['startPointMode'] == self::START_POINT_MODE_LeftRight)
-                {
-                    $area_swap = $this->swapAreaXY($area);
+                $y_min = min(array_keys($area));
+                $x_min = min(array_keys($area[$y_min]));
 
-                    $x_min = min(array_keys($area_swap));
-                    $y_min = min(array_keys($area_swap[$x_min]));
-
-                    $x_max = max(array_keys($area_swap));
-                    $y_max = min(array_keys($area_swap[$x_max]));
-                }
-                else # self::START_POINT_MODE_TopBottom
-                {
-                    $y_min = min(array_keys($area));
-                    $x_min = min(array_keys($area[$y_min]));
-
-                    $y_max = max(array_keys($area));
-                    $x_max = min(array_keys($area[$y_max]));
-                }
+                $y_max = max(array_keys($area));
+                $x_max = min(array_keys($area[$y_max]));
 
                 $d_min = sqrt(($this->laser_at_x-$x_min)**2 + ($this->laser_at_y-$y_min)**2);
                 $d_max = sqrt(($this->laser_at_x-$x_max)**2 + ($this->laser_at_y-$y_max)**2);

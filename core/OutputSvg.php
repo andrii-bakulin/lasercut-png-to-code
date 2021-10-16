@@ -20,10 +20,18 @@ class OutputSvg
         $this->hf = null;
     }
 
-    public function build($title, $shapes)
+    public function build($title, $shapes, $smoothLevel)
     {
+        if ($smoothLevel > 0)
+        {
+            $shapes = $this->smoothShapes($shapes, $smoothLevel);
+        }
+
+        $width  = $this->width;
+        $height = $this->height;
+
         $this->write('<?xml version="1.0" encoding="UTF-8" standalone="no"?>');
-        $this->write('<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" baseProfile="full" width="100" height="100">');
+        $this->write('<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" baseProfile="full" width="'.$width.'" height="'.$height.'">');
 
         $index = 0;
         foreach ($shapes as $k => $shape)
@@ -52,9 +60,49 @@ class OutputSvg
 
             $endCoords = join(' ', $endCoords);
             $this->write('<polyline points="'.$endCoords.'" stroke="black" stroke-width="1"/>');
+            $this->write('');
         }
 
         $this->write('</svg>');
+    }
+
+    protected function smoothShapes($shapes, $smoothLevel)
+    {
+        $shapesNew = [];
+
+        foreach ($shapes as $k => $shape)
+        {
+            $shapeNew = [];
+            $count = count($shape);
+            for ($i=0; $i<=$count; $i++)
+            {
+                $xAvg = 0;
+                $yAvg = 0;
+                $cAvg = 1 + $smoothLevel * 2;
+
+                for ($d=-$smoothLevel; $d<=+$smoothLevel; $d++)
+                {
+                    $index = $i + $d;
+                    if ($index < 0)
+                        $index += $count;
+                    $index %= $count;
+
+                    list($x,$y) = $shape[$index];
+
+                    $xAvg += $x;
+                    $yAvg += $y;
+                }
+
+                $xAvg /= $cAvg;
+                $yAvg /= $cAvg;
+
+                $shapeNew[] = [$xAvg, $yAvg];
+            }
+
+            $shapesNew[$k] = $shapeNew;
+        }
+
+        return $shapesNew;
     }
 
     protected function write($line)

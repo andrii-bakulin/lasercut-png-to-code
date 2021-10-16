@@ -39,15 +39,14 @@ if(!file_exists($basename.'.png'))
 $canvas = new CanvasParser();
 $canvas->mirror_by_x = strpos($basename, 'mir') !== false;
 $canvas->rotate90deg = strpos($basename, 'r90') !== false;
-$canvas->debugImages = true;
+$canvas->debugImages = false;
 $canvas->debugCoords = false;
 $canvas->load($basename);
 
 $shapesFold    = $canvas->buildShapesAsShapes(CanvasParser::MODE_FOLD,    'red',   CanvasParser::ANALYZE_BY_PIXEL);
 $shapesEngrave = $canvas->buildShapesAsBitmap(CanvasParser::MODE_ENGRAVE, 'green', CanvasParser::ANALYZE_BY_PIXEL, CanvasParser::ENGRAVE_BY_NOISE);
 $shapesCut     = $canvas->buildShapesAsShapes(CanvasParser::MODE_CUT,     'blue',  CanvasParser::ANALYZE_BY_DIFFS, array(
-    'skipShapesWithLessPointsCount'     => 2,
-    'startPointMode'                    => strpos($basename, 'startPointLeftRight') ? CanvasParser::START_POINT_MODE_LeftRight : CanvasParser::START_POINT_MODE_TopBottom,
+    'skipShapesWithLessPointsCount' => 2,
 ));
 
 $canvas->close();
@@ -60,7 +59,7 @@ if ($outputFormat == 'out-cubiio2')
 
     # Important have txt extension!
 
-    $laser = new Laser($basename.".txt", $canvas->width * $scale, $canvas->height * $scale);
+    $laser = new OutputCubiio2($basename.".txt", $canvas->width * $scale, $canvas->height * $scale);
     $laser->padding(0, 0);
 
     # This is preset for "blue paper"
@@ -73,10 +72,10 @@ else if($outputFormat == 'out-svg')
     $scale = 1 / 10 * 2.834643883688892; # 100px = 10mm
 
     $saver = new OutputSvg($basename."-fold.svg", $canvas->width * $scale, $canvas->height * $scale);
-    $saver->build('Fold', $shapesFold);
+    $saver->build('Fold', $shapesFold, 0);
 
     $saver = new OutputSvg($basename."-cut.svg",  $canvas->width * $scale, $canvas->height * $scale);
-    $saver->build('Cut',  $shapesCut);
+    $saver->build('Cut',  $shapesCut, 2);
 
     #new OutputSvg($basename."-fold.svg", $canvas->width * $scale, $canvas->height * $scale))->build('Engrave', $shapesEngrave);
 }
