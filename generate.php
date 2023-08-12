@@ -1,13 +1,14 @@
 <?php
 	
 ini_set("memory_limit", "256M");
+error_reporting(E_ALL ^ E_NOTICE);
 
 require_once 'core/CanvasParser.php';
 require_once 'core/OutputCubiio2.php';
 require_once 'core/OutputSvg.php';
 
-$outputFormat = $argv[1];
-$inputFile    = $argv[2];
+$outputFormat = isset($argv[1]) ? $argv[1] : null;
+$inputFile    = isset($argv[2]) ? $argv[2] : null;
 
 if (!in_array($outputFormat, array('out-cubiio2', 'out-svg')))
 {
